@@ -1,0 +1,19 @@
+{
+  "name": "majk-service",
+  "version": "0.0.1",
+  "description": "Rest API",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MrMajk/majk-service.git"
+  },
+  "author": "Michał Wajs",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MrMajk/majk-service/issues"
+  },
+  "homepage": "https://github.com/MrMajk/majk-service#readme"
+}
