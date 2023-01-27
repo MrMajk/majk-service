@@ -21,7 +21,7 @@ router.post('/signup', upload.single('avatar'), [
   validation('email'),
   validation('isEmailExist'),
   validation('password'),
-  validation('nick')
+  validation('required', 'nick')
 ], authController.signup)
 
 router.post('/login', [
@@ -32,7 +32,7 @@ router.post('/login', [
 
 router.get('/check-token', authController.verifyAccessToken)
 router.post('/revoke-token', [
-  validation('refreshToken')
+  validation('required', 'refreshToken')
 ], authController.revokeToken)
 router.get('/user', authController.getUserByToken)
 module.exports = router

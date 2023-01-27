@@ -4,22 +4,52 @@ const {Op} = require("sequelize")
 const path = require("path");
 const fs = require("fs");
 const User = require("../models/user");
-const {isString} = require("../helper");
+const {validationResult} = require("express-validator");
+const bcrypt = require("bcrypt");
+const {getErrorFormat} = require("../helper");
 
 
 exports.addReservation = async (req, res) => {
+  const errors = validationResult(req)
+  if(!errors.isEmpty()) {
+    return res.status(401).json(getErrorFormat(errors))
+  }
+
   const {tableId, start_date, end_date, guest_name, guest_phone} = req.body
   try {
+    const existReservation = await Reservation.findOne({
+      where: {
+        [Op.and]: [
+          {
+            start_date
+          },
+          {
+            end_date
+          },
+          {
+            tableId
+          }
+        ]
+      }
+    })
+    if (existReservation) {
+      res.status(401).json(getErrorFormat('Table already booked on this date'))
+    }
     const response = await Reservation.create({
       tableId, start_date, end_date, guest_name, guest_phone
     })
     res.status(201).json(response)
   } catch {
-    res.status(500)
+    res.status(500).json(getErrorFormat('Global error'))
   }
 }
 
 exports.addTable = async (req, res) => {
+  const errors = validationResult(req)
+  if(!errors.isEmpty()) {
+    return res.status(401).json(getErrorFormat(errors))
+  }
+
   const {name, seats} = req.body
   try {
     const response = await req.user.createTable({
@@ -29,26 +59,22 @@ exports.addTable = async (req, res) => {
     })
     res.status(201).json(response)
   } catch(error) {
-    console.log(error)
-    res.status(500).json()
+    res.status(500).json(getErrorFormat('Global error'))
   }
 }
 
 exports.editTable = async (req, res) => {
   try {
     let finalImage = null
-    const {name, seats, image} = req.body
+    const {name, seats} = req.body
     const table = await Table.findOne({
       where: {
         id: req.params.id
       }
     })
-    console.log('RESULT:', table.image && req.file !== undefined && table.image !== req.file)
-    console.log(table.image, req.file)
     if(table.image && req.file !== undefined && table.image !== req.file) {
       const uploads = path.join(__dirname, '/', '../uploads', table.image)
       if(fs.existsSync(uploads)) {
-        console.log(uploads)
         if(uploads) {
           fs.unlinkSync(uploads)
         }
@@ -56,16 +82,12 @@ exports.editTable = async (req, res) => {
     } else {
       finalImage = table.image
     }
-    console.log('------------------------------------')
-    console.log(req.file)
-    console.log('------------------------------------')
     const updatedTable = await table.update({
       name, seats, image: finalImage ? finalImage : req.file.filename
     })
     res.status(201).json(updatedTable)
   } catch(error) {
-    console.log(error)
-    res.status(500).json()
+    res.status(500).json(getErrorFormat('Global error'))
   }
 }
 
@@ -80,7 +102,7 @@ exports.getTables = async (req, res) => {
     })
     res.status(200).json(tables)
   } catch {
-    res.status(500).json()
+    res.status(500).json(getErrorFormat('Global error'))
   }
 }
 
@@ -89,7 +111,7 @@ exports.getTableById = async (req, res) => {
     const table = await Table.findByPk(req.params.id)
     res.status(200).json(table)
   } catch {
-    res.status(500).json()
+    res.status(500).json(getErrorFormat('Global error'))
   }
 }
 
@@ -97,13 +119,8 @@ exports.removeTable = async (req, res) => {
   try {
     const table = await Table.findByPk(req.params.id)
     if(!table) {
-      res.status(401).json({
-        errors: [{
-          message: 'table does not exist'
-        }]
-      })
+      res.status(401).json(getErrorFormat('Table does not exist'))
     }
-    console.log(table.image)
     if(table.image) {
       const uploads = path.join(__dirname, '/', '../uploads', table.image)
       if(fs.existsSync(uploads)) {
@@ -121,7 +138,7 @@ exports.removeTable = async (req, res) => {
     })
     res.status(201).json({id: req.params.id})
   } catch(error) {
-    res.status(500).json(error)
+    res.status(500).json(getErrorFormat('Global error'))
   }
 }
 
@@ -134,10 +151,9 @@ exports.getReservations = async (req, res) => {
       }],
       order: [['start_date', 'DESC']]
     })
-    console.log(reservations)
     res.status(200).json(reservations)
   } catch(e) {
-    res.status(500).json(e)
+    res.status(500).json(getErrorFormat('Global error'))
   }
 }
 
@@ -152,7 +168,7 @@ exports.removeReservation = async (req, res) => {
     }
     res.status(200).json({id})
   } catch(e) {
-    res.status(500).json(e)
+    res.status(500).json(getErrorFormat('Global error'))
   }
 }
 
@@ -188,18 +204,17 @@ exports.checkAvailableTables = async (req, res) => {
 
     res.status(201).json(response)
   } catch {
-    res.json(500)
+    res.json(500).json(getErrorFormat('Global error'))
   }
 }
 
-exports.fileFilter = (req, file, cb) => {
-  const uploads = path.join(__dirname, '/', '../uploads', table.image)
-  console.log(uploads)
-  if(fs.existsSync(uploads)) {
-    console.log('skipped')
-    cb(null, false)
-    return
-  }
-
-  cb(null, true)
-}
+// exports.fileFilter = (req, file, cb) => {
+//   const uploads = path.join(__dirname, '/', '../uploads', table.image)
+//   console.log(uploads)
+//   if(fs.existsSync(uploads)) {
+//     cb(null, false)
+//     return
+//   }
+//
+//   cb(null, true)
+// }

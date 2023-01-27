@@ -4,17 +4,14 @@ const adminController = require ('../controllers/admin')
 const multer = require('multer')
 const path = require("path");
 const fs = require("fs");
+const {validation} = require("../helper");
 
 const fileFilter = (req, file, cb) => {
-  console.log(file.originalname)
   const uploads = path.join(__dirname, '/', '../uploads', file.originalname)
-  console.log('UP',uploads)
   if(fs.existsSync(uploads)) {
-    console.log('skipped')
     cb(null, false)
     return
   }
-
   cb(null, true)
 }
 
@@ -35,11 +32,20 @@ const upload = multer({
 })
 
 router.get('/check-available-tables', adminController.checkAvailableTables)
-router.post('/add-reservation', adminController.addReservation)
+router.post('/add-reservation', [
+  validation('required','start_date'),
+  validation('required','end_date'),
+  validation('required','guest_name'),
+  validation('required','guest_phone'),
+  validation('required','tableId')
+], adminController.addReservation)
 router.get('/reservations', adminController.getReservations)
 router.delete('/reservation/:id', adminController.removeReservation)
 
-router.post('/add-table',upload.single('image'), adminController.addTable)
+router.post('/add-table',upload.single('image'), [
+  validation('required','name'),
+  validation('required','seats')
+], adminController.addTable)
 router.get('/tables', adminController.getTables)
 router.delete('/table/:id', adminController.removeTable)
 router.get('/table/:id', adminController.getTableById)

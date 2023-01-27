@@ -1,17 +1,37 @@
 const {body} = require("express-validator")
 const User = require("./models/user")
 
+exports.isObject = value => {
+  return Object.prototype.toString.call(value) === '[object Object]'
+}
+
+exports.isString = value => {
+  return Object.prototype.toString.call(value) === '[object String]';
+}
+
 exports.getErrorFormat = (errors) => {
   const extractedErrors = []
-  errors.array().map(err => extractedErrors.push({[err.param]: err.msg}))
-  return extractedErrors
+  try {
+    if(this.isString(errors)) {
+      extractedErrors.push({
+        error: errors
+      })
+    }
+
+    if(errors.errors && Array.isArray(errors.errors)) {
+      errors.array().map(err => extractedErrors.push({[err.param]: err.msg}))
+    }
+    return {errors: extractedErrors}
+  } catch(e) {
+    return {
+      errors: [{
+        error: 'Global error'
+      }]
+    }
+  }
 }
 
-exports.isString = (thing) => {
-  return Object.prototype.toString.call(thing) === '[object String]';
-}
-
-exports.validation = (method) => {
+exports.validation = (method, name) => {
   switch(method) {
     case 'email': {
       return body('email')
@@ -38,13 +58,9 @@ exports.validation = (method) => {
         .trim()
         .isStrongPassword()
     }
-    case 'refreshToken': {
-      return body('refresh_token')
-        .notEmpty().withMessage('refresh token is required')
-    }
-    case 'nick': {
-      return body('nick')
-        .notEmpty().withMessage('nick is required')
+    case 'required': {
+      return body(name)
+        .notEmpty().withMessage(`${name} is required`)
     }
   }
 }
