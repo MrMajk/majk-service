@@ -32,7 +32,7 @@ router.post('/login', [
 
 router.get('/check-token', authController.verifyAccessToken)
 router.post('/revoke-token', [
-  validation('required', 'refreshToken')
+  validation('required', 'refresh_token')
 ], authController.revokeToken)
 router.get('/user', authController.getUserByToken)
 module.exports = router
