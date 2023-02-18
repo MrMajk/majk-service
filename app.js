@@ -56,7 +56,7 @@ Reservation.belongsTo(Table)
     .sync({force: false, logging: console.log})
     .then(() => {
       console.log('DB started...')
-      app.listen($PORT || 8082)
+      app.listen(process.env.PORT || 8082)
     })
     .catch(error => {
       console.log(error)
