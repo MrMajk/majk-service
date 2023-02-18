@@ -2,18 +2,18 @@ const { DataTypes } = require('sequelize')
 
 const sequelize = require('../config/database')
 
-const User = sequelize.define('user', {
+const Meal = sequelize.define('meal', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
     allowNull: false,
     primaryKey: true
   },
-  email: DataTypes.STRING,
-  password: DataTypes.STRING,
-  avatar: DataTypes.STRING,
-  nick: DataTypes.STRING,
-  role: DataTypes.STRING
+  name: DataTypes.STRING,
+  description: DataTypes.STRING,
+  price: DataTypes.STRING,
+  image: DataTypes.STRING,
+  active: DataTypes.BOOLEAN
 })
 
-module.exports = User
+module.exports = Meal

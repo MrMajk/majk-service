@@ -62,8 +62,8 @@ exports.login = async (req, res) => {
     if(isPasswordValid) {
       const access_token = createAccessToken(user.id)
       const refresh_token = createRefreshToken(user.id)
-      res.cookie('access_token', access_token, {secure: true, maxAge: 2 * 60 * 60 * 100})
-      res.cookie('refresh_token', refresh_token, {secure: true, maxAge: 20 * 60 * 60 * 1000})
+      res.cookie('access_token', access_token, {secure: true, maxAge: 2 * 60 * 60 * 1000})
+      res.cookie('refresh_token', refresh_token, {secure: true, maxAge: 96 * 60 * 60 * 1000})
       res.status(200).json({
         user: {
           id: user.id,
@@ -114,8 +114,8 @@ exports.revokeToken = (req, res) => {
     const data = jwt.verify(refresh_token, process.env.REFRESH_TOKEN_SECRET)
     const new_access_token = createAccessToken(data.userId)
     const new_refresh_token = createRefreshToken(data.userId)
-    res.cookie('access_token', new_access_token, {secure: true, maxAge: 2 * 60 * 60 * 100})
-    res.cookie('refresh_token', new_refresh_token, {secure: true, maxAge: 20 * 60 * 60 * 1000})
+    res.cookie('access_token', new_access_token, {secure: true, maxAge: 2 * 60 * 60 * 1000})
+    res.cookie('refresh_token', new_refresh_token, {secure: true, maxAge: 96 * 60 * 60 * 1000})
     res.json({
       message: 'Revoke success'
     })
@@ -139,5 +139,17 @@ exports.getUserByToken = async (req, res) => {
     res.status(404).json(getErrorFormat('User not found'))
   } catch(error) {
     res.status(500).json(error)
+  }
+}
+
+exports.checkRole = async (req, res, next) => {
+  try {
+    if(process.env.EDIT_ROLES.split(", ").includes(req.user.role)) {
+      next()
+    } else {
+      res.status(401).json(getErrorFormat('You dont have permission'))
+    }
+  } catch(e) {
+    res.status(500).json(getErrorFormat('Global error'))
   }
 }

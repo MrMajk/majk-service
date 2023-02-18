@@ -1,6 +1,9 @@
 const express = require('express')
 const router = express.Router()
-const adminController = require ('../controllers/admin')
+const tableController = require ('../controllers/admin/table')
+const reservationController = require ('../controllers/admin/reservation')
+const authController = require ('../controllers/auth')
+const mealController = require ('../controllers/admin/meal')
 const multer = require('multer')
 const path = require("path");
 const fs = require("fs");
@@ -31,24 +34,38 @@ const upload = multer({
   storage
 })
 
-router.get('/check-available-tables', adminController.checkAvailableTables)
+router.get('/check-available-tables', tableController.checkAvailableTables)
+
+// RESERVATION
 router.post('/add-reservation', [
   validation('required','start_date'),
   validation('required','end_date'),
   validation('required','guest_name'),
   validation('required','guest_phone'),
   validation('required','tableId')
-], adminController.addReservation)
-router.get('/reservations', adminController.getReservations)
-router.delete('/reservation/:id', adminController.removeReservation)
+], reservationController.addReservation)
+router.get('/reservations', reservationController.getReservations)
+router.delete('/reservation/:id', reservationController.removeReservation)
 
-router.post('/add-table',upload.single('image'), [
+// TABLE
+router.post('/add-table', authController.checkRole, upload.single('image'), [
   validation('required','name'),
   validation('required','seats')
-], adminController.addTable)
-router.get('/tables', adminController.getTables)
-router.delete('/table/:id', adminController.removeTable)
-router.get('/table/:id', adminController.getTableById)
-router.put('/table/:id', upload.single('image'), adminController.editTable)
+], tableController.addTable)
+router.get('/tables', tableController.getTables)
+router.delete('/table/:id', authController.checkRole, tableController.removeTable)
+router.get('/table/:id', tableController.getTableById)
+router.put('/table/:id', upload.single('image'), authController.checkRole, tableController.editTable)
+
+// MEAL
+router.get('/meals', mealController.getMeals)
+router.post('/add-meal', authController.checkRole, upload.single('image'), [
+  validation('required','name'),
+  validation('required','description'),
+  validation('required','price')
+], mealController.addMeal)
+router.put('/meal/:id', authController.checkRole, upload.single('image'), mealController.editMeal)
+router.get('/meal/:id', mealController.getMealById)
+router.delete('/meal/:id', authController.checkRole, mealController.removeMeal)
 
 module.exports = router

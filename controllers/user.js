@@ -8,13 +8,13 @@ exports.getUser = async (req, res) => {
   const user = await User.findOne({
     where: { id }
   })
-  console.log(user)
   if (user) {
     res.json({
       id: user.id,
       email: user.email,
       nick: user.nick,
-      avatar: user.avatar
+      avatar: user.avatar,
+      role: user.role
     })
   } else {
     res.status(401).json({

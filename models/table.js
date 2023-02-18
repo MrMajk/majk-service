@@ -11,7 +11,8 @@ const Table = sequelize.define('table', {
   },
   name: DataTypes.STRING,
   seats: DataTypes.INTEGER,
-  image: DataTypes.STRING
+  image: DataTypes.STRING,
+  active: DataTypes.BOOLEAN
 })
 
 module.exports = Table

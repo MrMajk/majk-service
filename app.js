@@ -9,6 +9,7 @@ const adminRouter = require('./routes/admin')
 const Reservation = require("./models/reservation");
 const Table = require("./models/table");
 const jwt = require("jsonwebtoken");
+const Meal = require("./models/meal");
 
 const app = express()
 app.use(bodyParser.json())
@@ -44,6 +45,8 @@ app.use(adminRouter)
 Table.hasMany(Reservation)
 User.hasOne(Table)
 Table.belongsTo(User)
+User.hasOne(Meal)
+Meal.belongsTo(User)
 Table.hasOne(Reservation)
 Reservation.belongsTo(Table)
 
